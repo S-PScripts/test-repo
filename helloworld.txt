@@ -1,0 +1,108 @@
+Lua:
+print("hello world")
+print('hello world')
+print("hello world");
+print('hello world');
+
+print "hello world"
+print 'hello world'
+print "hello world";
+print 'hello world';
+
+Python:
+print("hello world")
+print('hello world')
+print("hello world");
+print('hello world');
+
+Rust:
+print("hello world")
+print('hello world')
+print("hello world");
+print('hello world');
+
+Java:
+class HelloWorld {
+    public static void main(String[] args) {
+        System.out.println("hello world");
+    }
+}
+
+C:
+#include <stdio.h>
+int main() {
+    printf("hello world");
+    return 0;
+}
+
+C++:
+#include <iostream>
+int main() {
+    std::cout << "hello world";
+    return 0;
+}
+
+#include <iostream>
+int main() {
+    std::cout << ("hello world");
+    return 0;
+}
+
+C#:
+using System;
+public class HelloWorld
+{
+    public static void Main(string[] args)
+    {
+        Console.WriteLine ("hello world");
+    }
+}
+
+Javascript:
+console.log("hello world");
+console.log('hello world');
+console.log("hello world")
+console.log('hello world')
+
+Go:
+package main
+import "fmt"
+func main() {
+  fmt.Println("hello world")
+}
+
+package main
+import "fmt"
+func main() {
+  fmt.Println("hello world");
+}
+
+PHP:
+<?php
+echo "hello world";
+?>
+
+<?php
+echo 'hello world';
+?>
+
+<?php
+echo "hello world"
+?>
+
+<?php
+echo 'hello world'
+?>
+
+Swift:
+print("hello world")
+print("hello world");
+
+Rust:
+fn main() {
+    println!("hello world");
+}
+
+fn main() {
+    println!("hello world")
+}
