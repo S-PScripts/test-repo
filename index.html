@@ -58,14 +58,28 @@
           </section>
 
           <section>
-            <h2>4. Progress summary</h2>
+            <h2>4. Save or load with a code</h2>
+            <div class="button-row">
+              <button id="generateCodeBtn" class="secondary">Generate save code</button>
+              <button id="loadCodeBtn" class="ghost">Load save code</button>
+            </div>
+            <label class="control-label" for="saveCodeBox">Progress code</label>
+            <textarea id="saveCodeBox" rows="6" placeholder="Generate a code, or paste one here to load saved progress."></textarea>
+            <p id="saveCodeStatus" class="helper"></p>
+          </section>
+
+          <section>
+            <h2>5. Progress summary</h2>
             <div class="stat-grid">
               <div class="stat"><strong id="unattemptedCount">0</strong><span>Unattempted</span></div>
               <div class="stat"><strong id="correctCount">0</strong><span>Correct once</span></div>
               <div class="stat"><strong id="correctMoreCount">0</strong><span>Correct &gt; once</span></div>
               <div class="stat"><strong id="incorrectCount">0</strong><span>Incorrect</span></div>
             </div>
-            <p class="helper">Saved in this browser using local storage.</p>
+            <div class="button-row top-gap">
+              <button id="toggleMapBtn" class="ghost">Show question map</button>
+            </div>
+            <p class="helper">Saved in this browser using local storage, and can also be exported into a code.</p>
           </section>
         </aside>
 
@@ -91,6 +105,16 @@
             <div id="hintBox" class="hint hidden"></div>
             <div id="builtInExplanation" class="explanation hidden"></div>
             <div id="aiExplanation" class="explanation hidden"></div>
+          </div>
+
+          <div id="mapPanel" class="map-panel hidden">
+            <div class="section-heading-row">
+              <h2>Question map</h2>
+              <button id="closeMapBtn" class="ghost">Close map</button>
+            </div>
+            <p class="helper">See every question grouped by topic, with labels showing whether it is unanswered, wrong, correct once, or correct more than once.</p>
+            <div id="mapLegend" class="badges"></div>
+            <div id="mapContainer" class="map-container"></div>
           </div>
         </main>
       </div>

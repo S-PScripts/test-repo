@@ -21,6 +21,8 @@ A dependency-free quiz website for practising AQA GCSE Computer Science specific
   - correct
   - correct more than once
   - incorrect
+- A question map that groups every question by topic and shows its current status.
+- Save-code export/import so progress can be moved or restored later.
 
 ## Run locally
 
@@ -32,7 +34,7 @@ Then open `http://localhost:8000`.
 
 ## Vercel AI Gateway
 
-Paste your API key into the app and save it locally in the browser. The site sends requests to:
+Paste your API key into the app and save it locally in the browser. You can also generate a progress code from the sidebar and later paste it back in to restore your saved answers. The site sends requests to:
 
 ```text
 https://ai-gateway.vercel.sh/v1/chat/completions

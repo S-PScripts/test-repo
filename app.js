@@ -8,6 +8,12 @@ const POOL_OPTIONS = {
   answeredWrong: 'Answered wrong',
   unansweredOrIncorrect: 'Unanswered / incorrectly answered'
 };
+const STATUS_LABELS = {
+  unattempted: 'Unanswered',
+  correct: 'Correct once',
+  'correct-more-than-once': 'Correct more than once',
+  incorrect: 'Incorrect'
+};
 
 const state = {
   selectedTopics: [...TOPICS],
@@ -20,7 +26,8 @@ const state = {
   currentIndex: 0,
   selectedIndex: null,
   showHint: false,
-  aiExplanation: ''
+  aiExplanation: '',
+  mapOpen: false
 };
 
 const elements = {
@@ -46,7 +53,13 @@ const elements = {
   correctCount: document.querySelector('#correctCount'),
   correctMoreCount: document.querySelector('#correctMoreCount'),
   incorrectCount: document.querySelector('#incorrectCount'),
-  apiKeyInput: document.querySelector('#apiKeyInput')
+  apiKeyInput: document.querySelector('#apiKeyInput'),
+  saveCodeBox: document.querySelector('#saveCodeBox'),
+  saveCodeStatus: document.querySelector('#saveCodeStatus'),
+  mapPanel: document.querySelector('#mapPanel'),
+  mapLegend: document.querySelector('#mapLegend'),
+  mapContainer: document.querySelector('#mapContainer'),
+  toggleMapBtn: document.querySelector('#toggleMapBtn')
 };
 
 elements.apiKeyInput.value = state.apiKey;
@@ -62,6 +75,7 @@ function loadJson(key, fallback) {
 function saveProgress() {
   localStorage.setItem(STORAGE_KEY, JSON.stringify(state.progress));
   renderStats();
+  renderMap();
 }
 
 function saveApiKey() {
@@ -91,19 +105,21 @@ function renderTopics() {
     label.innerHTML = `<input type="checkbox" ${state.selectedTopics.includes(topic) ? 'checked' : ''}><span>${topic}</span>`;
     label.querySelector('input').addEventListener('change', (event) => {
       if (event.target.checked) {
-        state.selectedTopics.push(topic);
+        state.selectedTopics = [...new Set([...state.selectedTopics, topic])];
       } else if (state.selectedTopics.length > 1) {
         state.selectedTopics = state.selectedTopics.filter((item) => item !== topic);
       } else {
         event.target.checked = true;
       }
       updateAvailableCount();
+      renderMap();
     });
     elements.topicList.appendChild(label);
   });
 }
 
 function renderPoolOptions() {
+  elements.poolFilter.innerHTML = '';
   Object.entries(POOL_OPTIONS).forEach(([value, label]) => {
     const option = document.createElement('option');
     option.value = value;
@@ -152,9 +168,9 @@ function buildSession() {
 
 function shuffle(items) {
   const copy = [...items];
-  for (let i = copy.length - 1; i > 0; i -= 1) {
-    const j = Math.floor(Math.random() * (i + 1));
-    [copy[i], copy[j]] = [copy[j], copy[i]];
+  for (let index = copy.length - 1; index > 0; index -= 1) {
+    const swapIndex = Math.floor(Math.random() * (index + 1));
+    [copy[index], copy[swapIndex]] = [copy[swapIndex], copy[index]];
   }
   return copy;
 }
@@ -190,8 +206,8 @@ function renderStats() {
 function renderQuestion() {
   const question = state.sessionQuestions[state.currentIndex];
   const hasQuestion = Boolean(question);
-  elements.emptyState.classList.toggle('hidden', hasQuestion);
-  elements.quizView.classList.toggle('hidden', !hasQuestion);
+  elements.emptyState.classList.toggle('hidden', hasQuestion || state.mapOpen);
+  elements.quizView.classList.toggle('hidden', !hasQuestion || state.mapOpen);
   if (!question) return;
 
   const status = getProgressState(question.id);
@@ -200,7 +216,7 @@ function renderQuestion() {
     question.topic,
     question.subtopic,
     question.difficulty,
-    status.replaceAll('-', ' ')
+    STATUS_LABELS[status]
   ].map((item) => `<span class="badge">${item}</span>`).join('');
 
   elements.questionText.textContent = question.question;
@@ -241,6 +257,39 @@ function renderQuestion() {
   elements.askAiBtn.textContent = state.apiKey ? 'Ask AI to explain' : 'Add API key to use AI';
   elements.previousBtn.disabled = state.currentIndex === 0;
   elements.nextBtn.disabled = state.currentIndex >= state.sessionQuestions.length - 1;
+}
+
+function renderMap() {
+  elements.mapLegend.innerHTML = Object.entries(STATUS_LABELS)
+    .map(([key, label]) => `<span class="badge map-legend-${key}">${label}</span>`)
+    .join('');
+
+  const topicCards = state.selectedTopics.map((topic) => {
+    const topicQuestions = QUESTIONS.filter((question) => question.topic === topic);
+    const items = topicQuestions.map((question) => {
+      const status = getProgressState(question.id);
+      const entry = getProgressEntry(question.id);
+      return `
+        <div class="map-question-item ${status}">
+          <strong>${question.question}</strong>
+          <span class="map-question-meta">${question.subtopic} • ${STATUS_LABELS[status]} • Attempts: ${entry.attempts || 0}</span>
+        </div>
+      `;
+    }).join('');
+
+    return `
+      <section class="map-topic-card">
+        <h3 class="map-topic-title">${topic}</h3>
+        <div class="map-question-list">${items}</div>
+      </section>
+    `;
+  }).join('');
+
+  elements.mapContainer.innerHTML = topicCards;
+  elements.mapPanel.classList.toggle('hidden', !state.mapOpen);
+  elements.toggleMapBtn.textContent = state.mapOpen ? 'Hide question map' : 'Show question map';
+  elements.emptyState.classList.toggle('hidden', state.mapOpen || Boolean(state.sessionQuestions[state.currentIndex]));
+  elements.quizView.classList.toggle('hidden', state.mapOpen || !Boolean(state.sessionQuestions[state.currentIndex]));
 }
 
 async function askAi() {
@@ -303,21 +352,81 @@ function moveQuestion(direction) {
   renderQuestion();
 }
 
+function encodeProgressCode() {
+  const payload = {
+    version: 1,
+    progress: state.progress,
+    savedAt: new Date().toISOString()
+  };
+  const json = JSON.stringify(payload);
+  return btoa(unescape(encodeURIComponent(json)));
+}
+
+function decodeProgressCode(code) {
+  const json = decodeURIComponent(escape(atob(code)));
+  return JSON.parse(json);
+}
+
+function generateSaveCode() {
+  const code = encodeProgressCode();
+  elements.saveCodeBox.value = code;
+  elements.saveCodeStatus.textContent = 'Save code generated. Keep it safe and paste it back later to restore progress.';
+  if (navigator.clipboard?.writeText) {
+    navigator.clipboard.writeText(code).then(() => {
+      elements.saveCodeStatus.textContent = 'Save code generated and copied to your clipboard.';
+    }).catch(() => {
+      elements.saveCodeStatus.textContent = 'Save code generated. Copy it manually if needed.';
+    });
+  }
+}
+
+function loadSaveCode() {
+  const code = elements.saveCodeBox.value.trim();
+  if (!code) {
+    elements.saveCodeStatus.textContent = 'Paste a save code first.';
+    return;
+  }
+  try {
+    const payload = decodeProgressCode(code);
+    if (!payload || typeof payload !== 'object' || !payload.progress || typeof payload.progress !== 'object') {
+      throw new Error('Invalid save code format.');
+    }
+    state.progress = payload.progress;
+    saveProgress();
+    updateAvailableCount();
+    renderQuestion();
+    elements.saveCodeStatus.textContent = `Save code loaded successfully${payload.savedAt ? ` (saved ${payload.savedAt})` : ''}.`;
+  } catch (error) {
+    elements.saveCodeStatus.textContent = `Could not load save code. ${error.message || 'Invalid code.'}`;
+  }
+}
+
+function toggleMap() {
+  state.mapOpen = !state.mapOpen;
+  renderMap();
+}
+
 document.querySelector('#selectAllTopicsBtn').addEventListener('click', () => {
   state.selectedTopics = [...TOPICS];
   renderTopics();
   updateAvailableCount();
+  renderMap();
 });
 
 document.querySelector('#clearTopicsBtn').addEventListener('click', () => {
   state.selectedTopics = [TOPICS[0]];
   renderTopics();
   updateAvailableCount();
+  renderMap();
 });
 
 document.querySelector('#startQuizBtn').addEventListener('click', buildSession);
 document.querySelector('#saveProgressBtn').addEventListener('click', saveProgress);
 document.querySelector('#saveApiKeyBtn').addEventListener('click', saveApiKey);
+document.querySelector('#generateCodeBtn').addEventListener('click', generateSaveCode);
+document.querySelector('#loadCodeBtn').addEventListener('click', loadSaveCode);
+document.querySelector('#toggleMapBtn').addEventListener('click', toggleMap);
+document.querySelector('#closeMapBtn').addEventListener('click', toggleMap);
 elements.poolFilter.addEventListener('change', (event) => { state.poolFilter = event.target.value; updateAvailableCount(); });
 elements.questionLimit.addEventListener('change', (event) => { state.questionLimit = Number(event.target.value) || 1; });
 elements.orderMode.addEventListener('change', (event) => { state.orderMode = event.target.value; });
@@ -331,3 +440,4 @@ renderPoolOptions();
 renderStats();
 updateAvailableCount();
 renderQuestion();
+renderMap();
