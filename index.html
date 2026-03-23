@@ -1,0 +1,101 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>AQA GCSE Computer Science Quiz</title>
+    <link rel="stylesheet" href="styles.css" />
+  </head>
+  <body>
+    <div class="page">
+      <header class="hero card">
+        <h1>AQA GCSE Computer Science Quiz</h1>
+        <p>
+          Custom GCSE Computer Science revision with pre-made multiple choice questions based on the AQA 8525 subject areas:
+          algorithms, programming, data representation, computer systems, networks, cyber security, SQL, and digital impacts.
+        </p>
+      </header>
+
+      <div class="layout">
+        <aside class="card sidebar">
+          <section>
+            <h2>1. Choose topics</h2>
+            <div class="mini-button-row">
+              <button id="selectAllTopicsBtn" class="secondary">Select all</button>
+              <button id="clearTopicsBtn" class="ghost">Clear all</button>
+            </div>
+            <div id="topicList" class="topic-list"></div>
+          </section>
+
+          <section>
+            <h2>2. Choose question pool</h2>
+            <label class="control-label" for="poolFilter">Category</label>
+            <select id="poolFilter"></select>
+
+            <label class="control-label" for="questionLimit">Number of questions</label>
+            <input id="questionLimit" type="number" min="1" value="8" />
+
+            <label class="control-label" for="orderMode">Order</label>
+            <select id="orderMode">
+              <option value="random">Random</option>
+              <option value="topic">Topic order</option>
+              <option value="original">Original file order</option>
+            </select>
+
+            <div class="button-row">
+              <button id="startQuizBtn" class="primary">Start quiz</button>
+              <button id="saveProgressBtn" class="secondary">Save progress</button>
+            </div>
+            <p id="availableCount" class="helper"></p>
+          </section>
+
+          <section>
+            <h2>3. AI explanations</h2>
+            <label class="control-label" for="apiKeyInput">Vercel AI Gateway API key</label>
+            <input id="apiKeyInput" type="password" placeholder="Paste key to enable explanations" />
+            <button id="saveApiKeyBtn" class="ghost">Save API key locally</button>
+            <p class="helper">The built-in hint works without a key. AI explanations use the Vercel AI Gateway endpoint directly from the browser.</p>
+          </section>
+
+          <section>
+            <h2>4. Progress summary</h2>
+            <div class="stat-grid">
+              <div class="stat"><strong id="unattemptedCount">0</strong><span>Unattempted</span></div>
+              <div class="stat"><strong id="correctCount">0</strong><span>Correct once</span></div>
+              <div class="stat"><strong id="correctMoreCount">0</strong><span>Correct &gt; once</span></div>
+              <div class="stat"><strong id="incorrectCount">0</strong><span>Incorrect</span></div>
+            </div>
+            <p class="helper">Saved in this browser using local storage.</p>
+          </section>
+        </aside>
+
+        <main class="card main-panel">
+          <div id="emptyState" class="empty-state">
+            <h2>Build your quiz session</h2>
+            <p class="helper">Questions are loaded from a local file, each one has a pre-coded answer, a pre-written hint, and a built-in explanation.</p>
+          </div>
+
+          <div id="quizView" class="hidden">
+            <div id="badgeRow" class="badges"></div>
+            <h2 id="questionText"></h2>
+            <div id="optionsContainer" class="options"></div>
+
+            <div class="button-row">
+              <button id="toggleHintBtn" class="secondary">Show hint</button>
+              <button id="askAiBtn" class="ghost" disabled>Ask AI to explain</button>
+              <button id="previousBtn" class="secondary">Previous</button>
+              <button id="nextBtn" class="primary">Next</button>
+            </div>
+
+            <div id="answerFeedback" class="feedback hidden"></div>
+            <div id="hintBox" class="hint hidden"></div>
+            <div id="builtInExplanation" class="explanation hidden"></div>
+            <div id="aiExplanation" class="explanation hidden"></div>
+          </div>
+        </main>
+      </div>
+    </div>
+
+    <script type="module" src="app.js"></script>
+  </body>
+</html>
